@@ -5,9 +5,6 @@
 // Import Express framework (used to build the server)
 const express = require('express');
 
-// Import File System module (used to read/write files)
-const fs = require('fs');
-
 // Import Morgan (HTTP request logger middleware)
 const morgan = require('morgan');
 
