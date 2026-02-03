@@ -1,7 +1,3 @@
-// =======================
-// IMPORT CORE MODULES
-// =======================
-
 // Import Express framework (used to build the server)
 const express = require('express');
 
