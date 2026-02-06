@@ -92,7 +92,6 @@ tourSchema.virtual('durationWeeks').get(function () {
 
 //DOCUMENT MIDDLEWARE:runs before .save() and .create()
 tourSchema.pre('save', function (next) {
-  console.log(this);
   this.slug = slugify(this.name, { lower: true });
   next();
 });
@@ -124,7 +123,6 @@ tourSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({
     $match: { secretTour: { $ne: true } },
   });
-  console.log(this);
   next();
 });
 

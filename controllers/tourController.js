@@ -1,3 +1,4 @@
+const AppError = require('../appError');
 const Tour = require('../models/tourModel');
 const apiFeatures = require('../utils/apiFeatures');
 
@@ -12,6 +13,12 @@ exports.aliasTopTours = (req, res, next) => {
 exports.getAllTours = async (req, res) => {
   try {
     let query = Tour.find();
+    if (!query) {
+      res.status(404).json({
+        status: 'fail',
+        message: 'there is no query',
+      });
+    }
     const queryObj = { ...req.query };
 
     query = apiFeatures.filter(query, queryObj);
@@ -111,9 +118,15 @@ exports.getAllTours = async (req, res) => {
 // };
 
 // GET a single tour by ID
-exports.getTour = async (req, res) => {
-  const tour = await Tour.findById(req.params.id);
+
+exports.getTour = async (req, res, next) => {
   try {
+    const tour = await Tour.findById(req.params.id);
+
+    if (!tour) {
+      return next(new AppError('There is no tour with that id', 404));
+    }
+
     res.status(200).json({
       status: 'success',
       data: {
@@ -121,15 +134,12 @@ exports.getTour = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(404).json({
-      status: 'fail',
-      message: err,
-    });
+    next(err);
   }
 };
 
 // CREATE a new tour
-exports.createTour = async (req, res) => {
+exports.createTour = async (req, res, next) => {
   try {
     const newTour = await Tour.create(req.body);
     res.status(201).json({
@@ -139,20 +149,21 @@ exports.createTour = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err,
-    });
+    next(err);
   }
 };
 
 // UPDATE a tour
-exports.updateTour = async (req, res) => {
+exports.updateTour = async (req, res, next) => {
   try {
     const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
+
+    if (!tour) {
+      return next(new AppError('There is no tour with that id', 404));
+    }
 
     res.status(200).json({
       status: 'success',
@@ -161,16 +172,21 @@ exports.updateTour = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: 'Invalid data sent',
-    });
+    next(err);
   }
 };
 
 // DELETE a tour
 exports.deleteTour = async (req, res) => {
-  await Tour.findByIdAndDelete(req.params.id);
+  const tour = await Tour.findByIdAndDelete(req.params.id);
+
+  if (!tour) {
+    res.status(404).json({
+      status: 'fail',
+      message: 'there is no tour with that id',
+    });
+  }
+
   try {
     res.status(204).json({
       status: 'success',

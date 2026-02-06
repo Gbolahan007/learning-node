@@ -17,7 +17,7 @@ exports.sort = (query, reqQuery) => {
 
 exports.limitFields = (query, reqQuery) => {
   if (reqQuery.fields) {
-    return query.select(reqQuery.fields.split(',').join(' '));
+    return query.select(reqQuery.fields.split(',').join(''));
   }
   return query.select('-__v');
 };
