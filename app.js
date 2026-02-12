@@ -31,6 +31,7 @@ app.use(express.static('./public'));
 // Useful for debugging or logging
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
+  // console.log(req.headers);
   next();
 });
 

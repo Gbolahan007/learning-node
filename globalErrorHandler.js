@@ -22,6 +22,10 @@ const handleValidationErrorDB = (err) => {
   return new AppError(message, 404);
 };
 
+const handleJWTError = () => new AppError(`Invalid token. Please login `, 401);
+const handleJWTExpiredError = () =>
+  new AppError('Your token has expired. Please login again.', 401);
+
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
@@ -36,13 +40,22 @@ module.exports = (err, req, res, next) => {
   }
 
   if (process.env.NODE_ENV === 'production') {
-    let error = err;
+    let error = { ...err };
+    error.message = err.message;
+    error.name = err.name;
 
     if (error.name === 'CastError') error = handleCastErrorDB(error);
+
     if (error.code === 11000) error = handleDuplicateErrorDB(error);
+
     if (error.name === 'ValidationError')
       error = handleValidationErrorDB(error);
 
+    if (error.name === 'JsonWebTokenError') error = handleJWTError();
+
+    if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
+
+    // ✅ Known operational errors
     if (error.isOperational) {
       return res.status(error.statusCode).json({
         status: error.status,
@@ -50,9 +63,12 @@ module.exports = (err, req, res, next) => {
       });
     }
 
+    // 🚨 Unknown / Programming Errors
+    console.error('UNEXPECTED ERROR 💥', err);
+
     return res.status(500).json({
       status: 'error',
-      message: 'Something went wrong',
+      message: 'Something went very wrong.',
     });
   }
 };
