@@ -17,6 +17,9 @@ exports.signUp = async (req, res, next) => {
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
       passwordChangedAt: req.body.passwordChangedAt,
+      role: req.body.role,
+      passwordResetToken: this.body.passwordResetToken,
+      passwordResetExpires: this.body.passwordResetExpires,
     });
 
     const token = signUpToken(newUser._id);
@@ -100,3 +103,33 @@ exports.protect = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.restrictTo =
+  (...roles) =>
+  (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You are not allowed to perform this action', 403),
+      );
+    }
+
+    next();
+  };
+
+exports.forgetPassword = async (req, res, next) => {
+  try {
+    // Get the user based on the posted mail
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return next(new AppError('There is not user with that eamil', 404));
+    }
+
+    // Generate the random reset token
+    const resetToken = user.createPasswordResetToken();
+
+    await user.save({ validateBeforeSave: false });
+  } catch (err) {
+    next(err);
+  }
+};
+exports.resetPassword = (req, res, next) => {};
